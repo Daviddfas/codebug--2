@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vis.js 可拖拽动态图</title>
+    <!-- 引入 vis.js 库 -->
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <style type="text/css">
+        body {
+            font-family: 'Inter', sans-serif; /* 使用 Inter 字体 */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f2f5;
+        }
+        #mynetwork {
+            width: 100%; /* 宽度自适应 */
+            height: 600px; /* 固定高度 */
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px; /* 圆角 */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 900px; /* 最大宽度 */
+            margin: 20px;
+            box-sizing: border-box; /* 包含边框和内边距 */
+        }
+    </style>
+</head>
+<body>
+    <div id="mynetwork"></div>
+
+    <script type="text/javascript">
+        // 等待 DOM 加载完成
+        window.onload = function() {
+            // 获取用于渲染网络的 DOM 元素
+            var container = document.getElementById('mynetwork');
+
+            // 定义节点数据
+            var nodes = new vis.DataSet([
+                {id: 1, label: '中心节点', title: '这是中心节点', color: { background: '#66bb6a', border: '#388e3c' }},
+                {id: 2, label: '概念A', title: '与中心节点相关', color: { background: '#42a5f5', border: '#1976d2' }},
+                {id: 3, label: '概念B', title: '与中心节点相关', color: { background: '#ff7043', border: '#d84315' }},
+                {id: 4, label: '子概念A1', title: '概念A的子概念', color: { background: '#90caf9', border: '#42a5f5' }},
+                {id: 5, label: '子概念A2', title: '概念A的子概念', color: { background: '#90caf9', border: '#42a5f5' }},
+                {id: 6, label: '子概念B1', title: '概念B的子概念', color: { background: '#ffab91', border: '#ff7043' }}
+            ]);
+
+            // 定义边数据
+            var edges = new vis.DataSet([
+                {from: 1, to: 2, arrows: 'to', label: '关联'},
+                {from: 1, to: 3, arrows: 'to', label: '关联'},
+                {from: 2, to: 4, arrows: 'to', label: '细分'},
+                {from: 2, to: 5, arrows: 'to', label: '细分'},
+                {from: 3, to: 6, arrows: 'to', label: '细分'}
+            ]);
+
+            // 创建数据对象
+            var data = {
+                nodes: nodes,
+                edges: edges
+            };
+
+            // 配置网络选项
+            var options = {
+                nodes: {
+                    shape: 'dot', // 节点形状为圆形
+                    size: 20,     // 节点大小
+                    font: {
+                        size: 14,
+                        color: '#333333'
+                    },
+                    borderWidth: 2,
+                    shadow: true // 节点阴影
+                },
+                edges: {
+                    width: 2,
+                    color: { inherit: 'from' }, // 边的颜色继承自节点
+                    font: {
+                        size: 12,
+                        align: 'middle'
+                    },
+                    shadow: true // 边阴影
+                },
+                physics: {
+                    enabled: true, // 启用物理引擎
+                    barnesHut: {
+                        gravitationalConstant: -2000,
+                        centralGravity: 0.3,
+                        springLength: 95,
+                        springConstant: 0.04,
+                        damping: 0.09,
+                        avoidOverlap: 0.5
+                    },
+                    // 禁用平滑曲线以避免在拖拽时出现不自然的抖动
+                    stabilization: {
+                        enabled: true,
+                        iterations: 1000,
+                        updateInterval: 25
+                    }
+                },
+                interaction: {
+                    dragNodes: true,   // 允许拖拽节点
+                    dragView: true,    // 允许拖拽视图
+                    zoomView: true,    // 允许缩放视图
+                    hover: true,       // 鼠标悬停效果
+                    tooltipDelay: 300  // 提示框延迟
+                }
+            };
+
+            // 初始化网络
+            var network = new vis.Network(container, data, options);
+
+            // 监听节点拖拽事件（可选：如果您需要将拖拽结果反馈回 Streamlit）
+            network.on("dragEnd", function (params) {
+                if (params.nodes.length > 0) {
+                    // 可以在这里获取拖拽后的节点位置信息
+                    // console.log("Node dragged:", params.nodes[0], network.getPositions(params.nodes[0]));
+                    // 如果需要在 Streamlit 中处理，可以通过某种机制（如 postMessage）发送数据
+                }
+            });
+
+            // 监听窗口大小变化，使图表自适应
+            window.addEventListener('resize', function() {
+                network.fit(); // 重新调整图表以适应容器
+            });
+        };
+    </script>
+</body>
+</html>
